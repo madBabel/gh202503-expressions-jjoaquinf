@@ -45,4 +45,45 @@ jobs:
           echo "Job var: ${{ env.JOB_VAR }}" 
           echo "Workflow var: ${{ env.WORKFLOW_VAR }}" 
           echo "Overwritten: ${{ env.OVERWRITTEN }}"
+  
+  functions-pr-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Print PR labels"
+        if: github.event_name == 'pull_request'
+        run: |
+          cat << EOF
+          ${{ toJSON(github.event.pull_request.labels) }}
+          EOF
+      - name: "Bug check"
+        if: contains(toJSON(github.event.pull_request.labels.*.name), 'fix')
+        run: |
+          echo "This PR is a bug fix"
+      
+      - name: "Sleep and Cancel"
+        run: |
+          echo "This job will be cancelled"  
+          sleep 20
+      - name: "Failing step"
+        if: inputs.fail
+        run: |
+          echo "This step forces to fail"
+          exit 1   
+          
+      - name: "Conditional Step - Failure"
+        if: failure()
+        run: |
+          echo "This step runs only if a previous step failed"
+      
+      - name: "Print Always"
+        if: always()
+        run: |
+          echo "This step always runs"
+
+      - name: "On Cancel"
+        if: cancelled()
+        run: |
+          echo "Workflow has been cancelled"
+      
+        
 
